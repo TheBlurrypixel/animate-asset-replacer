@@ -1,0 +1,55 @@
+{
+  "task": "replace_embedded_manifest_image",
+  "input": {
+    "html_file": "attached HTML file",
+    "replacement_image": "new_bg.jpg"
+  },
+  "target": {
+    "object": "lib.properties.manifest",
+    "asset_id": "bg",
+    "property": "dataURI"
+  },
+  "image_processing": {
+    "match_original_image_dimensions": true,
+    "resize_mode": "stretch",
+    "preserve_aspect_ratio": false,
+    "skip_resize_if_dimensions_already_match": true,
+    "allow_cropping": false,
+    "allow_padding": false,
+    "target_width": "original_embedded_image_width",
+    "target_height": "original_embedded_image_height"
+  },
+  "operation": {
+    "extract_original_image_dimensions": true,
+    "resize_replacement_before_encoding": true,
+    "data_uri_source": "resized_replacement_image",
+    "convert_replacement_image_to_data_uri": true,
+    "mime_type": "image/jpeg",
+    "preserve_replacement_format": false,
+    "jpeg_quality": 95,
+    "replace_target_image_data": true
+  },
+  "conditions": {
+    "asset_id_equals": "bg"
+  },
+  "verification": {
+    "verify_resized_image_dimensions_match_original": true,
+    "verify_encoded_image_dimensions_match_original": true,
+    "decode_generated_data_uri_for_dimension_check": true,
+    "fail_if_dimensions_do_not_match": true,
+    "fail_if_source_image_was_encoded_instead_of_resized_image": true
+  },
+  "rules": {
+    "support_minified_html": true,
+    "locate_asset_by_manifest_id": true,
+    "do_not_assume_data_uri_variable_name": true,
+    "preserve_minification": true,
+    "preserve_all_other_code": true,
+    "preserve_all_other_assets": true,
+    "do_not_reformat_html": true
+  },
+  "output": {
+    "type": "html",
+    "filename_suffix": "_new_bg"
+  }
+}

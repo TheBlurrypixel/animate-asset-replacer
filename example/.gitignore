@@ -1,0 +1,10 @@
+node_modules
+/images
+/components
+/assets
+/sounds
+/libs
+/videos
+DataStore
+/index*.html
+RECOVER_*

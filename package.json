@@ -1,0 +1,16 @@
+{
+  "name": "animate-asset-replacer",
+  "version": "0.1.0",
+  "description": "JSON + JavaScript driven Adobe Animate embedded asset replacer",
+  "main": "src/main.js",
+  "type": "commonjs",
+  "scripts": {"start": "electron .", "dist": "electron-builder --win"},
+  "dependencies": {"ajv": "^8.17.1", "sharp": "^0.33.5"},
+  "devDependencies": {"electron": "^35.0.0", "electron-builder": "^25.1.8"},
+  "build": {
+    "appId": "com.local.animateassetreplacer",
+    "productName": "Animate Asset Replacer",
+    "files": ["src/**/*", "recipes/**/*", "schemas/**/*", "package.json"],
+    "win": {"target": "nsis"}
+  }
+}

@@ -1,0 +1,10 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Animate Asset Replacer</title>
+<style>
+body{font-family:Arial,sans-serif;margin:0;background:#181818;color:#f4f4f4}.wrap{max-width:760px;margin:0 auto;padding:28px}.field{margin:18px 0}label{display:block;margin-bottom:7px;font-weight:bold}.row{display:flex;gap:8px}input{flex:1;padding:10px;border-radius:6px;border:1px solid #555;background:#242424;color:#fff}button{padding:10px 16px;border:0;border-radius:6px;cursor:pointer}#run{margin-top:12px;width:100%;font-size:16px;font-weight:bold}pre{margin-top:24px;min-height:180px;background:#0f0f0f;border:1px solid #333;border-radius:8px;padding:14px;overflow:auto;white-space:pre-wrap}
+</style></head><body><div class="wrap">
+<h1>Animate Asset Replacer</h1><p>JSON recipes for standard behavior, JavaScript for custom conditions.</p>
+<div class="field"><label>Published HTML</label><div class="row"><input id="htmlFile"><button data-pick="htmlFile" data-kind="html">Browse</button></div></div>
+<div class="field"><label>Recipe JSON</label><div class="row"><input id="recipeFile"><button data-pick="recipeFile" data-kind="json">Browse</button></div></div>
+<div class="field"><label>Replacement Image</label><div class="row"><input id="replacementImage"><button data-pick="replacementImage" data-kind="image">Browse</button></div></div>
+<button id="run">PROCESS</button><pre id="log">Ready.</pre></div><script src="./renderer.js"></script></body></html>
