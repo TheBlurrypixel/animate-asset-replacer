@@ -1,11 +1,12 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const path = require("path");
-const { processReplacement } = require("./core/processor");
+const { processReplacementJob } = require("./core/processor");
+const { loadRecipe } = require("./core/recipe");
 
 function createWindow() {
   const win = new BrowserWindow({
-    width: 840,
-    height: 700,
+    width: 980,
+    height: 820,
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true,
@@ -27,18 +28,16 @@ app.on("window-all-closed", () => {
 });
 
 ipcMain.handle("pick-file", async (_event, options = {}) => {
-  const result = await dialog.showOpenDialog({
-    properties: ["openFile"],
-    filters: options.filters || []
-  });
+  const result = await dialog.showOpenDialog({ properties: ["openFile"], filters: options.filters || [] });
   return result.canceled ? null : result.filePaths[0];
 });
 
-ipcMain.handle("process-replacement", async (_event, payload) => {
-  try {
-    const result = await processReplacement(payload);
-    return { ok: true, result };
-  } catch (err) {
-    return { ok: false, error: err && err.stack ? err.stack : String(err) };
-  }
+ipcMain.handle("load-recipe", async (_event, recipeFile) => {
+  try { return { ok: true, recipe: loadRecipe(recipeFile) }; }
+  catch (err) { return { ok: false, error: err && err.stack ? err.stack : String(err) }; }
+});
+
+ipcMain.handle("process-replacements", async (_event, payload) => {
+  try { return { ok: true, result: await processReplacementJob(payload) }; }
+  catch (err) { return { ok: false, error: err && err.stack ? err.stack : String(err) }; }
 });

@@ -1,83 +1,68 @@
-# Animate Asset Replacer
+# Animate Asset Replacer v0.2
 
-A local Windows desktop app for replacing embedded Adobe Animate manifest images.
+This version supports multiple image replacements in one run and remains compatible with the original single-image recipe format.
 
-## Hybrid design
-
-- **JSON recipes** control normal behavior.
-- **JavaScript conditions** handle custom logic that is too specific for JSON.
-
-## Install and run
-
-1. Install Node.js LTS.
-2. Open a terminal in this folder.
-3. Run:
+## Run
 
 ```bash
 npm install
 npm start
 ```
 
-## Build a Windows installer
+## Multiple-image recipe
+
+Use a `replacements` array:
+
+```json
+{
+  "task": "replace_embedded_manifest_images",
+  "image_processing": {
+    "match_original_image_dimensions": true,
+    "resize_mode": "stretch",
+    "skip_resize_if_dimensions_already_match": true
+  },
+  "operation": {
+    "mime_type": "image/jpeg",
+    "preserve_replacement_format": false,
+    "jpeg_quality": 95
+  },
+  "replacements": [
+    { "asset_id": "bg", "replacement_image": "new_bg.jpg" },
+    {
+      "asset_id": "logo",
+      "replacement_image": "new_logo.png",
+      "operation": { "preserve_replacement_format": true }
+    }
+  ],
+  "output": {
+    "type": "html",
+    "filename_suffix": "_replaced"
+  }
+}
+```
+
+The app reads the recipe and automatically creates one image picker per replacement.
+
+## Global defaults and per-image overrides
+
+Top-level `image_processing`, `operation`, `verification`, and `conditions` are defaults. Any replacement can override them.
+
+## Custom JavaScript conditions
+
+Edit:
+
+```text
+src/rules/conditions.js
+```
+
+The condition function is called once for each replacement and receives the current asset, original image metadata, replacement image metadata, recipe, and replacement object.
+
+## Backward compatibility
+
+Old v0.1 recipes with `input.replacement_image` and `target.asset_id` still work. The app internally converts them to a one-item replacements array.
+
+## Windows build
 
 ```bash
 npm run dist
 ```
-
-The installer will be created in `dist/`.
-
-## JSON customization
-
-Edit `recipes/replaceBackground.json`.
-
-Example:
-
-```json
-"conditions": {
-  "asset_id_equals": "bg",
-  "replacement_width_at_least": 1000,
-  "replacement_format_in": ["png", "jpeg", "jpg"]
-}
-```
-
-Built-in condition keys:
-
-- `asset_id_equals`
-- `replacement_width_greater_than`
-- `replacement_width_at_least`
-- `replacement_format_in`
-- `original_width_equals`
-- `original_height_equals`
-
-## Advanced JavaScript customization
-
-Edit `src/rules/conditions.js`.
-
-```js
-async function shouldReplace(context) {
-  const { originalImage, replacementImage } = context;
-
-  if (replacementImage.width < originalImage.width) {
-    throw new Error("Replacement image must not be smaller than the original.");
-  }
-
-  return true;
-}
-```
-
-## Preserve PNG vs force JPEG
-
-Current recipe behavior:
-
-```json
-"mime_type": "image/jpeg",
-"preserve_replacement_format": false
-```
-
-To preserve the replacement file's format:
-
-```json
-"preserve_replacement_format": true
-```
-
-Then PNG remains PNG and JPEG remains JPEG.

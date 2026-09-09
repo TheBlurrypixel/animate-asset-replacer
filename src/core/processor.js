@@ -1,53 +1,95 @@
 const fs = require("fs");
 const path = require("path");
-const sharp = require("sharp");
-const { loadRecipe } = require("./recipe");
+const { loadRecipe, normalizeRecipe } = require("./recipe");
 const { findManifestAsset } = require("./manifestParser");
 const { parseDataUri, toDataUri } = require("./dataUri");
 const { processImage, inspectImage } = require("./imageProcessor");
 const { evaluateConditions } = require("./conditionEngine");
 
-async function processReplacement(payload) {
-  const { htmlFile, recipeFile, replacementImage } = payload;
-  if (!htmlFile || !recipeFile || !replacementImage) throw new Error("HTML file, recipe JSON, and replacement image are all required.");
-
-  const recipe = loadRecipe(recipeFile);
-  const html = fs.readFileSync(htmlFile, "utf8");
-  const assetId = recipe.target.asset_id;
-  const asset = findManifestAsset(html, assetId);
-  const parsed = parseDataUri(asset.dataUri);
-  const originalMeta = await inspectImage(parsed.buffer);
-  const replacementMeta = await sharp(replacementImage).metadata();
-
-  const context = {
-    recipe,
-    asset: { id: assetId, referenceType: asset.referenceType, referenceName: asset.referenceName },
-    originalImage: originalMeta,
-    replacementImage: { width: replacementMeta.width, height: replacementMeta.height, format: replacementMeta.format, hasAlpha: !!replacementMeta.hasAlpha }
-  };
-
-  const allowed = await evaluateConditions(recipe, context);
-  if (!allowed) return { status: "skipped", reason: "Replacement conditions were not satisfied.", assetId };
-
-  const processed = await processImage(replacementImage, parsed.buffer, recipe);
-  const verification = recipe.verification || {};
-  if (verification.verify_encoded_image_dimensions_match_original &&
-      (processed.processed.width !== processed.original.width || processed.processed.height !== processed.original.height)) {
-    throw new Error(`Encoded image dimensions ${processed.processed.width}x${processed.processed.height} do not match original ${processed.original.width}x${processed.original.height}.`);
-  }
-
-  const newUri = toDataUri(processed.buffer, processed.mimeType);
-  const outputHtml = html.slice(0, asset.replaceStart) + newUri + html.slice(asset.replaceEnd);
-  const suffix = recipe.output.filename_suffix || "_processed";
-  const parsedPath = path.parse(htmlFile);
-  const outputPath = path.join(parsedPath.dir, parsedPath.name + suffix + parsedPath.ext);
-  fs.writeFileSync(outputPath, outputHtml, "utf8");
-
+function mergeSettings(recipe, replacement) {
   return {
-    status: "success", outputPath, assetId,
-    referenceType: asset.referenceType, referenceName: asset.referenceName,
-    original: processed.original, replacement: processed.source,
-    processed: processed.processed, resized: processed.resized, mimeType: processed.mimeType
+    image_processing: { ...(recipe.image_processing || {}), ...(replacement.image_processing || {}) },
+    operation: { ...(recipe.operation || {}), ...(replacement.operation || {}) },
+    verification: { ...(recipe.verification || {}), ...(replacement.verification || {}) }
   };
 }
-module.exports = { processReplacement };
+
+async function processReplacementJob(payload) {
+  const { htmlFile, recipeFile, replacementOverrides = [] } = payload;
+  if (!htmlFile || !recipeFile) throw new Error("HTML file and Recipe JSON are required.");
+
+  const recipe = normalizeRecipe(loadRecipe(recipeFile));
+  let html = fs.readFileSync(htmlFile, "utf8");
+  const results = [];
+
+  for (let i = 0; i < recipe.replacements.length; i++) {
+    const replacement = recipe.replacements[i];
+    const assetId = replacement.asset_id || (recipe.target && recipe.target.asset_id);
+    if (!assetId) throw new Error(`Replacement ${i + 1} has no asset_id.`);
+
+    const replacementImage = replacementOverrides[i] || replacement.replacement_image;
+    if (!replacementImage) throw new Error(`Replacement ${i + 1} (${assetId}) has no image selected.`);
+
+    const asset = findManifestAsset(html, assetId);
+    const parsed = parseDataUri(asset.dataUri);
+    const originalMeta = await inspectImage(parsed.buffer);
+    const replacementMeta = await inspectImage(replacementImage);
+
+    const context = {
+      recipe,
+      replacement,
+      replacementIndex: i,
+      asset: { id: assetId, referenceType: asset.referenceType, referenceName: asset.referenceName },
+      originalImage: originalMeta,
+      replacementImage: replacementMeta
+    };
+
+    const conditions = { ...(recipe.conditions || {}), ...(replacement.conditions || {}) };
+    const allowed = await evaluateConditions(conditions, context);
+    if (!allowed) {
+      results.push({ status: "skipped", assetId, reason: "Replacement conditions were not satisfied." });
+      continue;
+    }
+
+    const settings = mergeSettings(recipe, replacement);
+    const processed = await processImage(replacementImage, parsed.buffer, settings);
+    const verification = settings.verification || {};
+
+    if (verification.verify_encoded_image_dimensions_match_original &&
+        (processed.processed.width !== processed.original.width ||
+         processed.processed.height !== processed.original.height)) {
+      throw new Error(`Asset "${assetId}" output dimensions do not match the original.`);
+    }
+
+    const newUri = toDataUri(processed.buffer, processed.mimeType);
+    html = html.slice(0, asset.replaceStart) + newUri + html.slice(asset.replaceEnd);
+
+    results.push({
+      status: "success",
+      assetId,
+      referenceType: asset.referenceType,
+      referenceName: asset.referenceName,
+      original: processed.original,
+      replacement: processed.source,
+      processed: processed.processed,
+      resized: processed.resized,
+      mimeType: processed.mimeType
+    });
+  }
+
+  const suffix = (recipe.output && recipe.output.filename_suffix) || "_processed";
+  const parsedPath = path.parse(htmlFile);
+  const outputPath = path.join(parsedPath.dir, parsedPath.name + suffix + parsedPath.ext);
+  fs.writeFileSync(outputPath, html, "utf8");
+
+  return {
+    status: "complete",
+    outputPath,
+    replacementsRequested: recipe.replacements.length,
+    replacementsSucceeded: results.filter(r => r.status === "success").length,
+    replacementsSkipped: results.filter(r => r.status === "skipped").length,
+    results
+  };
+}
+
+module.exports = { processReplacementJob };

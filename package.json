@@ -1,6 +1,6 @@
 {
   "name": "animate-asset-replacer",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "JSON + JavaScript driven Adobe Animate embedded asset replacer",
   "main": "src/main.js",
   "type": "commonjs",
