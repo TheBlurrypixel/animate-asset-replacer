@@ -66,3 +66,53 @@ Old v0.1 recipes with `input.replacement_image` and `target.asset_id` still work
 ```bash
 npm run dist
 ```
+
+
+## v0.2.1
+Relative replacement image paths are resolved from the directory containing
+the selected recipe JSON. Absolute paths remain unchanged.
+
+
+## v0.3.0 — image and audio replacement
+
+Audio data URIs are now supported. Relative audio paths are resolved relative
+to the recipe JSON directory, just like image paths.
+
+Example:
+
+```json
+{
+  "asset_id": "spinSfx",
+  "asset_type": "audio",
+  "replacement_audio": "spin.mp3",
+  "operation": {
+    "mime_type": "audio/mpeg"
+  }
+}
+```
+
+Audio is embedded as-is; v0.3 does not transcode audio. MIME types can be
+inferred for MP3, WAV, OGG, M4A/MP4, AAC and WebM, or set explicitly.
+
+
+## v0.3.1 — audio browse filter fix
+
+The replacement Browse button now chooses its file filter from `asset_type`:
+
+- `"asset_type": "image"` shows image files.
+- `"asset_type": "audio"` shows audio files.
+- If `asset_type` is omitted, the picker shows both supported image and audio files.
+
+Supported audio picker extensions: MP3, WAV, OGG/OGA, M4A, AAC, and WebM.
+
+
+## v0.3.2 — replacement picker fix
+
+The replacement-row Browse button now actually switches filters based on
+`asset_type`.
+
+- `asset_type: "image"` -> image picker
+- `asset_type: "audio"` -> audio picker
+- omitted `asset_type` -> combined image/audio picker
+
+This fixes the v0.3.1 UI path that still hardcoded `pick("image")`.

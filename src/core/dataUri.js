@@ -1,6 +1,6 @@
 function parseDataUri(uri) {
   const match = /^data:([^;,]+);base64,(.*)$/s.exec(uri);
-  if (!match) throw new Error("Unsupported or invalid data URI.");
+  if (!match) throw new Error("Unsupported or invalid base64 data URI.");
   return { mimeType: match[1], buffer: Buffer.from(match[2], "base64") };
 }
 function toDataUri(buffer, mimeType) {

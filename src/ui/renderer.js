@@ -1,7 +1,9 @@
 const filters = {
-  html: [{ name:"HTML", extensions:["html","htm"] }],
-  json: [{ name:"JSON", extensions:["json"] }],
-  image: [{ name:"Images", extensions:["png","jpg","jpeg","webp"] }]
+  html: [{ name: "HTML", extensions: ["html", "htm"] }],
+  json: [{ name: "JSON", extensions: ["json"] }],
+  image: [{ name: "Images", extensions: ["png", "jpg", "jpeg", "webp"] }],
+  audio: [{ name: "Audio", extensions: ["mp3", "wav", "ogg", "oga", "m4a", "aac", "webm"] }],
+  asset: [{ name: "Images & Audio", extensions: ["png", "jpg", "jpeg", "webp", "mp3", "wav", "ogg", "oga", "m4a", "aac", "webm"] }]
 };
 
 let currentRecipe = null;
@@ -47,14 +49,32 @@ function renderRows(replacements) {
   replacements.forEach((r, i) => {
     const card = document.createElement("div"); card.className = "replacement-card";
     const title = document.createElement("div"); title.className = "replacement-title";
-    const left = document.createElement("span"); left.textContent = `Asset: ${r.asset_id || "(missing asset_id)"}`; left.className = "asset-id";
+    const left = document.createElement("span");
+    left.textContent = `Asset: ${r.asset_id || "(missing asset_id)"}${r.asset_type ? ` (${r.asset_type})` : ""}`;
+    left.className = "asset-id";
     const right = document.createElement("span"); right.textContent = `#${i+1}`; right.className = "small";
     title.append(left,right);
 
     const row = document.createElement("div"); row.className = "row";
-    const input = document.createElement("input"); input.value = r.replacement_image || "";
-    const browse = document.createElement("button"); browse.textContent = "Browse";
-    browse.addEventListener("click", async () => { const f = await pick("image"); if (f) input.value = f; });
+
+    const input = document.createElement("input");
+    input.value = r.replacement_image || r.replacement_audio || "";
+
+    const browse = document.createElement("button");
+    browse.textContent = "Browse";
+
+    browse.addEventListener("click", async () => {
+      const kind =
+        r.asset_type === "audio"
+          ? "audio"
+          : r.asset_type === "image"
+          ? "image"
+          : "asset";
+
+      const f = await pick(kind);
+      if (f) input.value = f;
+    });
+
     row.append(input,browse); card.append(title,row); $("replacementList").append(card);
     replacementRows.push({ assetId:r.asset_id, input });
   });
@@ -86,11 +106,17 @@ $("run").addEventListener("click", async () => {
   ];
   job.results.forEach((r,i) => {
     lines.push(`#${i+1} ${r.assetId}: ${r.status}`);
-    if (r.status === "success") {
-      lines.push(`  Original: ${r.original.width} x ${r.original.height}`,
+    if (r.status === "success" && r.assetType === "image") {
+      lines.push(`  Type: image`,
+                 `  Original: ${r.original.width} x ${r.original.height}`,
                  `  Replacement: ${r.replacement.width} x ${r.replacement.height} (${r.replacement.format})`,
                  `  Output: ${r.processed.width} x ${r.processed.height} (${r.mimeType})`,
                  `  Resized: ${r.resized ? "yes" : "no"}`);
+    } else if (r.status === "success" && r.assetType === "audio") {
+      lines.push(`  Type: audio`,
+                 `  Original MIME: ${r.originalMimeType}`,
+                 `  Output MIME: ${r.mimeType}`,
+                 `  Replacement bytes: ${r.bytes}`);
     } else lines.push(`  Reason: ${r.reason}`);
     lines.push("");
   });

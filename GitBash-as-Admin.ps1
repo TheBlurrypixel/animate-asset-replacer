@@ -1,0 +1,1 @@
+powershell -Command "Start-Process '"C:\Program Files\Git\git-bash.exe"' -Verb RunAs"

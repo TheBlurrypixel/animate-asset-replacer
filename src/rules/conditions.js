@@ -1,15 +1,12 @@
 /*
-  Edit this file for custom JavaScript conditions.
-  Return true to continue, false to skip, or throw Error to stop.
+  Runs once per image OR audio replacement.
+  Return true to replace, false to skip, or throw Error to stop.
+
+  context.asset.type: "image" | "audio"
+  Image: context.originalImage / context.replacementImage
+  Audio: context.originalAudio / context.replacementAudio
 */
 async function shouldReplace(context) {
-  const { recipe, asset, originalImage, replacementImage } = context;
-
-  // Example:
-  // if (replacementImage.width < originalImage.width) {
-  //   throw new Error("Replacement image must not be smaller than the original.");
-  // }
-
   return true;
 }
-module.exports = { shouldReplace };
+module.exports={shouldReplace};

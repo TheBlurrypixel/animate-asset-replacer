@@ -1,0 +1,36 @@
+{
+  "task": "replace_embedded_manifest_images",
+  "image_processing": {
+    "match_original_image_dimensions": true,
+    "resize_mode": "stretch",
+    "preserve_aspect_ratio": false,
+    "skip_resize_if_dimensions_already_match": true,
+    "allow_cropping": false,
+    "allow_padding": false
+  },
+  "operation": {
+    "mime_type": "image/jpeg",
+    "preserve_replacement_format": false,
+    "jpeg_quality": 95
+  },
+  "verification": {
+    "verify_encoded_image_dimensions_match_original": true
+  },
+  "replacements": [
+    {
+      "asset_id": "bg",
+      "replacement_image": "new_bg.jpg"
+    },
+    {
+      "asset_id": "charJump_BMP",
+      "replacement_image": "new_charJump_BMP.png",
+      "operation": {
+        "preserve_replacement_format": true
+      }
+    }
+  ],
+  "output": {
+    "type": "html",
+    "filename_suffix": "_replaced"
+  }
+}
