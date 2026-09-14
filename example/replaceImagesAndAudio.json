@@ -1,37 +1,41 @@
 {
-  "task": "replace_embedded_manifest_assets",
-  "image_processing": {
-    "match_original_image_dimensions": true,
-    "resize_mode": "stretch",
-    "skip_resize_if_dimensions_already_match": true
-  },
-  "operation": {
-    "preserve_replacement_format": true
-  },
-  "replacements": [
-    {
-      "asset_id": "bg",
-      "asset_type": "image",
-      "replacement_image": "new_bg.jpg"
-    },
-    {
-      "asset_id": "charJump_BMP",
-      "replacement_image": "new_charJump_BMP.png",
-      "operation": {
-        "preserve_replacement_format": true
-      }
-    },
-    {
-      "asset_id": "bgmusic",
-      "asset_type": "audio",
-      "replacement_audio": "new_bgmusic.mp3",
-      "operation": {
-        "mime_type": "audio/mpeg"
-      }
-    }
-  ],
-  "output": {
-    "type": "html",
-    "filename_suffix": "_assets_replaced"
-  }
+	"task": "replace_embedded_manifest_assets",
+	"image_processing": {
+		"match_original_image_dimensions": true,
+		"resize_mode": "fill",
+		"skip_resize_if_dimensions_already_match": true
+	},
+	"operation": {
+		"preserve_replacement_format": true
+	},
+	"replacements": [
+		{
+			"asset_id": "bg",
+			"asset_type": "image",
+			"replacement_image": "new_bg.jpg"
+		},
+		{
+			"asset_id": "charJump_BMP",
+			"replacement_image": "new_charJump_BMP.png",
+			"image_processing": {
+				"match_original_image_dimensions": true,
+				"resize_mode": "contain"
+			},
+			"operation": {
+				"preserve_replacement_format": true
+			}
+		},
+		{
+			"asset_id": "bgmusic",
+			"asset_type": "audio",
+			"replacement_audio": "new_bgmusic.mp3",
+			"operation": {
+				"mime_type": "audio/mpeg"
+			}
+		}
+	],
+	"output": {
+		"type": "html",
+		"filename_suffix": "_assets_replaced"
+	}
 }

@@ -1,1 +1,2 @@
+// For npm dist
 powershell.exe -ExecutionPolicy Bypass -File GitBash-as-Admin.ps1
