@@ -27,7 +27,7 @@ function determineAssetType(repl,asset,parsed){
   throw new Error(`Could not determine asset type for "${repl.asset_id}". Add asset_type.`);
 }
 async function processReplacementJob(payload){
-  const {htmlFile,recipeFile,replacementOverrides=[]}=payload;
+  const {htmlFile,recipeFile,replacementOverrides=[],outputFile}=payload;
   if(!htmlFile||!recipeFile) throw new Error("HTML file and Recipe JSON are required.");
   const recipe=normalizeRecipe(loadRecipe(recipeFile));
   let html=fs.readFileSync(htmlFile,"utf8");
@@ -89,7 +89,9 @@ async function processReplacementJob(payload){
 
   const suffix=recipe.output?.filename_suffix || "_processed";
   const pp=path.parse(htmlFile);
-  const outputPath=path.join(pp.dir,pp.name+suffix+pp.ext);
+  const outputPath=outputFile
+    ? path.resolve(outputFile)
+    : path.join(pp.dir,pp.name+suffix+pp.ext);
   fs.writeFileSync(outputPath,html,"utf8");
   return {status:"complete",outputPath,replacementsRequested:recipe.replacements.length,
     replacementsSucceeded:results.filter(r=>r.status==="success").length,

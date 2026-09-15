@@ -116,3 +116,163 @@ The replacement-row Browse button now actually switches filters based on
 - omitted `asset_type` -> combined image/audio picker
 
 This fixes the v0.3.1 UI path that still hardcoded `pick("image")`.
+
+
+## v0.3.3 — shared GUI/CLI processor cleanup
+
+- `processReplacementJob()` now accepts an optional `outputFile`.
+- The CLI passes `--output` directly to the shared processor instead of generating and renaming a temporary output.
+- The CLI now uses `loadRecipe()` + `normalizeRecipe()` from `src/core/recipe.js`, matching the processor's recipe validation and normalization behavior.
+
+
+## v0.3.4 — standalone Windows CLI executable
+
+The project can now build the CLI as a single Windows executable using
+`@yao-pkg/pkg`.
+
+### Requirements
+
+The build machine must use Node.js 22 or newer. Node.js 24 is recommended
+because the CLI target is `node24-win-x64`.
+
+After updating/pulling the project, install dependencies:
+
+```bash
+npm install
+```
+
+Build only the standalone CLI:
+
+```bash
+npm run dist:cli:win
+```
+
+Output:
+
+```text
+dist-cli/animate-replacer.exe
+```
+
+The target computer does not need Node.js, npm, Electron, or node_modules.
+
+Build only the Electron GUI:
+
+```bash
+npm run dist:gui:win
+```
+
+Build both Windows versions:
+
+```bash
+npm run dist:all:win
+```
+
+The `pkg.assets` configuration explicitly includes the recipe schema and
+Sharp's platform-specific native packages (`node_modules/@img/**/*`) so the
+CLI can continue using the same Sharp-based image processor as the GUI.
+
+Test the executable with:
+
+```powershell
+.\dist-cli\animate-replacer.exe --version
+.\dist-cli\animate-replacer.exe --help
+.\dist-cli\animate-replacer.exe playable.html recipe.json --verbose
+```
+
+
+## v0.3.5 — isolate the standalone CLI dependency graph
+
+The standalone CLI build now starts explicitly from `src/cli.js`:
+
+```bash
+pkg src/cli.js --config package.json --target node24-win-x64 --output dist-cli/animate-replacer.exe --compress Brotli
+```
+
+Previously the command used `pkg .`. Because `package.json` declares
+`"main": "src/main.js"` for Electron, packaging the project root caused pkg to
+begin at the Electron GUI entry point.
+
+The broad pkg configuration:
+
+```json
+"scripts": ["src/**/*.js"]
+```
+
+has also been removed. pkg now follows CommonJS `require()` dependencies from
+`src/cli.js`, so GUI-only files such as `src/main.js`, `src/preload.js`, and
+`src/ui/renderer.js` are not deliberately pulled into the CLI dependency graph.
+
+Runtime assets needed by the shared core remain explicitly included:
+
+- `schemas/**/*`
+- `node_modules/sharp/**/*`
+- `node_modules/@img/**/*`
+
+Build with:
+
+```bash
+npm run dist:cli:win
+```
+
+
+## v0.3.6 — unified release directory layout
+
+Windows and macOS GUI/CLI builds now write into architecture-specific
+release directories:
+
+```text
+release/
+├── windows-x64/
+│   ├── [Electron GUI artifacts]
+│   └── animate-replacer.exe
+├── macos-arm64/
+│   ├── [Electron GUI artifacts]
+│   └── animate-replacer
+└── macos-x64/
+    ├── [Electron GUI artifacts]
+    └── animate-replacer
+```
+
+### Windows
+
+Build both the Electron GUI and standalone CLI:
+
+```bash
+npm run dist:all:win
+```
+
+or:
+
+```bash
+npm run dist:win
+```
+
+### macOS
+
+Build both architectures of the Electron GUI and standalone CLI:
+
+```bash
+npm run dist:all:mac
+```
+
+or:
+
+```bash
+npm run dist:mac
+```
+
+Individual build commands remain available:
+
+```text
+dist:gui:win
+dist:cli:win
+dist:gui:mac:arm
+dist:gui:mac:intel
+dist:gui:mac
+dist:cli:mac:arm
+dist:cli:mac:intel
+dist:cli:mac
+```
+
+Build Windows artifacts on Windows and macOS artifacts on macOS, particularly
+because Sharp contains platform- and architecture-specific native components.

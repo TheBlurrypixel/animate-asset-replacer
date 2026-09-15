@@ -1,0 +1,9 @@
+npm install
+
+// WIN
+npm run dist:gui:win
+npm run dist:cli:win
+
+// MAC
+npm run dist:gui:mac
+npm run dist:cli:mac
