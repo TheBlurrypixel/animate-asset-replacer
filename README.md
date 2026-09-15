@@ -276,3 +276,17 @@ dist:cli:mac
 
 Build Windows artifacts on Windows and macOS artifacts on macOS, particularly
 because Sharp contains platform- and architecture-specific native components.
+
+
+## v0.3.7 — Windows CLI resources via resedit
+
+The Windows CLI post-build resource step now uses `resedit` instead of
+`rcedit`. It applies `build/icon.ico` and writes the package version and
+Windows version strings into `release/windows-x64/animate-replacer.exe`.
+
+After updating, run:
+
+```bash
+npm install
+npm run dist:cli:win
+```

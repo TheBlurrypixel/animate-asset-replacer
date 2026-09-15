@@ -1,7 +1,7 @@
 node_modules
 /dist
-/dist-cli
 /release
+/dist-cli
 /images
 /components
 /assets
