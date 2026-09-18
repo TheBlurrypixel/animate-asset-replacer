@@ -51,7 +51,7 @@
       "oneClick": false,
       "allowToChangeInstallationDirectory": true
     },
-    "extraResources": [
+    "extraFiles": [
       {
         "from": "release-cli/windows-x64",
         "to": "cli",

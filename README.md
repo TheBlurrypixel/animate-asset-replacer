@@ -339,4 +339,4 @@ untouched by resedit.
 
 ## v0.4.1 — CLI embedded in Electron
 
-`npm run dist:win` now builds the CLI first into `release-cli/windows-x64/`, then builds Electron. electron-builder copies that complete CLI tree to `resources/cli/` via `extraResources`. The bundled CLI remains outside `app.asar`, with its Sharp `runtime/` folder beside it. Advanced users can invoke `resources/cli/animate-replacer.exe` directly.
+`npm run dist:win` now builds the CLI first into `release-cli/windows-x64/`, then builds Electron. electron-builder copies that complete CLI tree to the app root as `cli/` via `extraFiles`. The bundled CLI remains outside `app.asar`, with its Sharp `runtime/` folder beside it. Advanced users can invoke `cli/animate-replacer.exe` directly.
