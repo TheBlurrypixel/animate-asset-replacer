@@ -6,7 +6,9 @@ if (process.platform !== 'darwin') throw new Error('This script must run on macO
 const arch = process.arch;
 const root = path.resolve(__dirname, '..');
 const electronOut = path.join(root, 'release', `macos-${arch}`);
-const appDir = path.join(electronOut, `mac-${arch}`);
+// electron-builder --dir writes the unpacked macOS app to a 'mac' subfolder
+// when the outer output directory is already architecture-specific.
+const appDir = path.join(electronOut, 'mac');
 const appPath = path.join(appDir, 'Animate Asset Replacer.app');
 const cliSource = path.join(root, 'release-cli', `mac-${arch}`);
 const bundleDir = path.join(electronOut, 'portable');
