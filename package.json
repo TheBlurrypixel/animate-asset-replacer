@@ -11,7 +11,7 @@
     "start": "electron .",
     "cli": "node src/cli.js",
     "dist:cli:win": "node scripts/build-cli-win.js",
-    "dist:gui:win": "electron-builder --win --x64 --config.directories.output=release/windows-x64",
+    "dist:gui:win": "electron-builder --win --x64 --publish never --config.directories.output=release/windows-x64",
     "dist:win": "npm run dist:cli:win && npm run dist:gui:win",
     "dist:cli:mac:native": "node scripts/build-cli-mac.js",
     "dist:gui:mac:native": "node scripts/build-gui-mac.js",

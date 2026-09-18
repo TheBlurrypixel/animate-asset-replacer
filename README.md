@@ -1,4 +1,4 @@
-# Animate Asset Replacer v3.7.21
+# Animate Asset Replacer v0.2
 
 This version supports multiple image replacements in one run and remains compatible with the original single-image recipe format.
 

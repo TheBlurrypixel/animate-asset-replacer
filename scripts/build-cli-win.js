@@ -3,7 +3,7 @@ const path = require("path");
 const { exec } = require("@yao-pkg/pkg");
 
 const root = path.resolve(__dirname, "..");
-const releaseDir = path.join(root, "release-cli", "windows-x64");
+const releaseDir = path.join(root, "release-cli", "win-x64");
 const exePath = path.join(releaseDir, "animate-replacer.exe");
 const runtimeNodeModules = path.join(releaseDir, "runtime", "node_modules");
 const sourceImgRoot = path.join(root, "node_modules", "@img");
