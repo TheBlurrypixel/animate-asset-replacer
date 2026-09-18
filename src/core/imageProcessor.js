@@ -1,3 +1,30 @@
+const path = require("path");
+const Module = require("module");
+
+function configurePackagedNativeModules() {
+  if (!process.pkg) return;
+
+  const externalNodeModules = path.join(
+    path.dirname(process.execPath),
+    "runtime",
+    "node_modules"
+  );
+
+  const current = process.env.NODE_PATH
+    ? process.env.NODE_PATH.split(path.delimiter)
+    : [];
+
+  if (!current.includes(externalNodeModules)) {
+    process.env.NODE_PATH = [externalNodeModules, ...current]
+      .filter(Boolean)
+      .join(path.delimiter);
+
+    // Rebuild Node's global module search paths after changing NODE_PATH.
+    Module._initPaths();
+  }
+}
+
+configurePackagedNativeModules();
 const sharp = require("sharp");
 
 async function inspectImage(buffer) {

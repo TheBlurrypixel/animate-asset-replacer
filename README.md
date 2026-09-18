@@ -290,3 +290,53 @@ After updating, run:
 npm install
 npm run dist:cli:win
 ```
+
+
+## v0.3.8 — safe Windows CLI resources
+
+The Windows CLI now applies the icon/version metadata to a copied pkg Node base binary **before** pkg appends the application payload. `npm run dist:cli:win` prepares `.pkg-custom-base/node.exe`, then packages with `PKG_NODE_PATH` pointing to that customized base. The completed pkg executable is no longer modified by resedit.
+
+
+## v0.3.9 — Windows CLI post-processing
+
+`npm run dist:cli:win` builds `animate-replacer.raw.exe` with `@yao-pkg/pkg`, then uses `resedit-cli` to create a separate `animate-replacer.exe` with the icon and version metadata. The untouched raw executable is retained for troubleshooting. The v0.3.8 custom-base/probe scripts have been removed.
+
+
+## v0.4.0 — portable Windows CLI with external Sharp runtime
+
+The Windows CLI is now distributed as a portable folder instead of forcing
+Sharp's native addon into the pkg snapshot.
+
+Build:
+
+```bash
+npm install
+npm run dist:cli:win
+```
+
+Output:
+
+```text
+release/windows-x64/
+├── animate-replacer.exe
+└── runtime/
+    ├── README.txt
+    └── node_modules/
+        └── @img/
+            └── sharp-win32-x64/
+                └── ...
+```
+
+Keep `runtime/` beside `animate-replacer.exe`. At packaged runtime,
+`imageProcessor.js` adds `runtime/node_modules` to Node's module search path
+before loading Sharp. Normal source/development execution still uses the
+project's ordinary `node_modules`.
+
+v0.4.0 deliberately removes Windows EXE resource post-processing while the
+native runtime layout is being stabilized. This keeps the CLI executable
+untouched by resedit.
+
+
+## v0.4.1 — CLI embedded in Electron
+
+`npm run dist:win` now builds the CLI first into `release-cli/windows-x64/`, then builds Electron. electron-builder copies that complete CLI tree to `resources/cli/` via `extraResources`. The bundled CLI remains outside `app.asar`, with its Sharp `runtime/` folder beside it. Advanced users can invoke `resources/cli/animate-replacer.exe` directly.

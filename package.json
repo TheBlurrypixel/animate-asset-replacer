@@ -1,70 +1,69 @@
 {
-	"name": "animate-asset-replacer",
-	"version": "0.3.7",
-	"description": "JSON + JavaScript driven Adobe Animate embedded image/audio asset replacer",
-	"main": "src/main.js",
-	"type": "commonjs",
-	"bin": {
-		"animate-replacer": "./src/cli.js"
-	},
-	"scripts": {
-		"start": "electron .",
-		"cli": "node src/cli.js",
-		"dist": "electron-builder --win",
-		"dist:gui:win": "electron-builder --win --x64 --config.directories.output=release/windows-x64",
-		"dist:cli:win": "pkg src/cli.js --config package.json --target node24-win-x64 --output \"release/windows-x64/animate-replacer.exe\" --compress Brotli && node scripts/set-cli-icon.js",
-		"dist:all:win": "npm run dist:gui:win && npm run dist:cli:win",
-		"dist:gui:mac:arm": "electron-builder --mac --arm64 --config.directories.output=release/macos-arm64",
-		"dist:gui:mac:intel": "electron-builder --mac --x64 --config.directories.output=release/macos-x64",
-		"dist:gui:mac": "npm run dist:gui:mac:arm && npm run dist:gui:mac:intel",
-		"dist:cli:mac:arm": "pkg src/cli.js --config package.json --target node24-macos-arm64 --output \"release/macos-arm64/animate-replacer\" --compress Brotli",
-		"dist:cli:mac:intel": "pkg src/cli.js --config package.json --target node24-macos-x64 --output \"release/macos-x64/animate-replacer\" --compress Brotli",
-		"dist:cli:mac": "npm run dist:cli:mac:arm && npm run dist:cli:mac:intel",
-		"dist:all:mac": "npm run dist:gui:mac && npm run dist:cli:mac",
-		"dist:win": "npm run dist:all:win",
-		"dist:mac": "npm run dist:all:mac"
-	},
-	"dependencies": {
-		"ajv": "^8.17.1",
-		"sharp": "^0.33.5"
-	},
-	"devDependencies": {
-		"electron": "^35.0.0",
-		"electron-builder": "^25.1.8",
-		"@yao-pkg/pkg": "^6.22.0",
-		"resedit": "^2.0.3"
-	},
-	"build": {
-		"appId": "com.local.animateassetreplacer",
-		"productName": "Animate Asset Replacer",
-		"files": [
-			"src/**/*",
-			"recipes/**/*",
-			"schemas/**/*",
-			"package.json"
-		],
-		"mac": {
-			"target": [
-				"dmg",
-				"zip"
-			],
-			"icon": "build/icon.icns",
-			"category": "public.app-category.developer-tools"
-		},
-		"win": {
-			"target": "nsis",
-			"icon": "build/icon.ico"
-		},
-		"nsis": {
-			"oneClick": false,
-			"allowToChangeInstallationDirectory": true
-		}
-	},
-	"pkg": {
-		"assets": [
-			"schemas/**/*",
-			"node_modules/sharp/**/*",
-			"node_modules/@img/**/*"
-		]
-	}
+  "name": "animate-asset-replacer",
+  "version": "0.4.1",
+  "description": "JSON + JavaScript driven Adobe Animate embedded image/audio asset replacer",
+  "main": "src/main.js",
+  "type": "commonjs",
+  "bin": {
+    "animate-replacer": "./src/cli.js"
+  },
+  "scripts": {
+    "start": "electron .",
+    "cli": "node src/cli.js",
+    "dist": "electron-builder --win",
+    "dist:gui:win": "electron-builder --win --x64 --config.directories.output=release/windows-x64",
+    "dist:cli:win": "node scripts/build-cli-win.js",
+    "dist:all:win": "npm run dist:cli:win && npm run dist:gui:win",
+    "dist:gui:mac:arm": "electron-builder --mac --arm64 --config.directories.output=release/macos-arm64",
+    "dist:gui:mac:intel": "electron-builder --mac --x64 --config.directories.output=release/macos-x64",
+    "dist:gui:mac": "npm run dist:gui:mac:arm && npm run dist:gui:mac:intel",
+    "dist:cli:mac:arm": "pkg src/cli.js --config package.json --target node24-macos-arm64 --output \"release/macos-arm64/animate-replacer\" --compress Brotli",
+    "dist:cli:mac:intel": "pkg src/cli.js --config package.json --target node24-macos-x64 --output \"release/macos-x64/animate-replacer\" --compress Brotli",
+    "dist:cli:mac": "npm run dist:cli:mac:arm && npm run dist:cli:mac:intel",
+    "dist:all:mac": "npm run dist:gui:mac && npm run dist:cli:mac",
+    "dist:win": "npm run dist:all:win",
+    "dist:mac": "npm run dist:all:mac"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "sharp": "^0.33.5"
+  },
+  "devDependencies": {
+    "electron": "^35.0.0",
+    "electron-builder": "^25.1.8",
+    "@yao-pkg/pkg": "^6.22.0",
+    "resedit": "^2.0.3"
+  },
+  "build": {
+    "appId": "com.local.animateassetreplacer",
+    "productName": "Animate Asset Replacer",
+    "files": [
+      "src/**/*",
+      "recipes/**/*",
+      "schemas/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    },
+    "extraResources": [
+      {
+        "from": "release-cli/windows-x64",
+        "to": "cli",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
+  },
+  "pkg": {
+    "assets": [
+      "schemas/**/*"
+    ]
+  }
 }
