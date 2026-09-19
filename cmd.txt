@@ -9,8 +9,11 @@ npm run dist:mac:native
 // run the worklow
 gh workflow run build-windows.yml
 
+// or
+gh workflow run build-macos.yml
+
 // to monitor for completion
-gh run watch
+winpty gh run watch
 
 // when finished download
-gh run download -D ./release
+winpty gh run download -D ./release
