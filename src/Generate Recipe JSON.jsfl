@@ -184,7 +184,7 @@
 		task: "replace_embedded_manifest_assets",
 		image_processing: {
 			match_original_image_dimensions: true,
-			resize_mode: "fill",
+			resize_mode: "contain",
 			skip_resize_if_dimensions_already_match: true
 		},
 		operation: {
