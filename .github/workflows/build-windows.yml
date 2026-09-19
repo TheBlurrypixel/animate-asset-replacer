@@ -24,10 +24,25 @@ jobs:
       - name: Build Windows CLI and Electron app
         run: npm run dist:win
 
-      - name: Upload Windows build
+      - name: Create portable Windows ZIP
+        shell: pwsh
+        run: |
+          $version = node -p "require('./package.json').version"
+          $source = "release/windows-x64/win-unpacked"
+          $zip = "release/windows-x64/Animate-Asset-Replacer-$version-Windows-Portable.zip"
+          if (-not (Test-Path $source)) {
+            throw "Portable source folder not found: $source"
+          }
+          if (Test-Path $zip) { Remove-Item $zip -Force }
+          Compress-Archive -Path "$source/*" -DestinationPath $zip -CompressionLevel Optimal
+          Write-Host "Created portable ZIP: $zip"
+
+      - name: Upload Windows distributions
         uses: actions/upload-artifact@v4
         with:
           name: Animate-Asset-Replacer-Windows-x64
-          path: release/windows-x64/**
+          path: |
+            release/windows-x64/Animate Asset Replacer Setup *.exe
+            release/windows-x64/Animate-Asset-Replacer-*-Windows-Portable.zip
           if-no-files-found: error
           retention-days: 14
