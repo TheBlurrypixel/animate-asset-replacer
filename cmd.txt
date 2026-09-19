@@ -1,2 +1,16 @@
-// For npm dist
-powershell.exe -ExecutionPolicy Bypass -File GitBash-as-Admin.ps1
+// For local build
+
+npm run dist:win
+npm run dist:mac:native
+
+// For GitHub workflows
+// prefix win winpty if using gitbash
+
+// run the worklow
+gh workflow run build-windows.yml
+
+// to monitor for completion
+gh run watch
+
+// when finished download
+gh run download -D ./release
