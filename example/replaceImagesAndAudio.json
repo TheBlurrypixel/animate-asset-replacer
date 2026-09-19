@@ -18,8 +18,8 @@
 			"asset_id": "charJump_BMP",
 			"replacement_image": "new_charJump_BMP.png",
 			"image_processing": {
-				"match_original_image_dimensions": true,
-				"resize_mode": "contain"
+				"match_original_image_dimensions": false,
+				"resize_mode": "cover"
 			},
 			"operation": {
 				"preserve_replacement_format": true

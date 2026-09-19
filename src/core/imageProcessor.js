@@ -49,7 +49,8 @@ async function processImage(sourcePath, originalBuffer, recipe) {
 	var width = original.width;
 	var height = original.height;
 
-	if (!cfg.match_original_image_dimensions && cfg.resize_mode !== "fill") {
+	// if contain or cover and not set to match original dims then use the new dimensions as base to maintain aspect
+	if (!cfg.match_original_image_dimensions && (cfg.resize_mode === "contain" || cfg.resize_mode === "cover")) {
 		// how to find out which dimension to stretch along
 		var xRatio = original.width / sourceMeta.width;
 		var yRatio = original.height / sourceMeta.height;
@@ -62,7 +63,8 @@ async function processImage(sourcePath, originalBuffer, recipe) {
 		height = parseInt(sourceMeta.height * sRatio);
 	}
 
-	if (!(cfg.skip_resize_if_dimensions_already_match && sameSize)) {
+	// if none or is same dims as original then do not resize
+	if (!(cfg.resize_mode === "none" || cfg.skip_resize_if_dimensions_already_match && sameSize)) {
 		pipeline = pipeline.resize(
 			width,
 			height,
