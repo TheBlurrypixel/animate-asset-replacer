@@ -1,0 +1,53 @@
+{
+	"task":"replace_embedded_manifest_assets",
+	"image_processing":
+	{
+		"match_original_image_dimensions":true,
+		"resize_mode":"contain",
+		"skip_resize_if_dimensions_already_match":true
+	},
+	"operation":
+	{
+		"preserve_replacement_format":true
+	},
+	"replacements":
+	[
+		{
+			"asset_id":"bg",
+			"asset_type":"image",
+			"replacement_image":"bg.jpg",
+			"parents":
+			[
+				
+			]
+		},
+		{
+			"asset_id":"bgmusic",
+			"asset_type":"audio",
+			"replacement_audio":"bgmusic.mp3",
+			"operation":
+			{
+				"mime_type":"audio/mpeg"
+			}
+		},
+		{
+			"asset_id":"charJump_BMP",
+			"asset_type":"image",
+			"replacement_image":"new_charJump_BMP.png",
+			"image_processing": {
+				"match_original_image_dimensions":false,
+				"resize_mode":"cover",
+				"center": true
+			},
+			"parents":
+			[
+				"charJump"
+			]
+		}
+	],
+	"output":
+	{
+		"type":"html",
+		"filename_suffix":"_assets_replaced"
+	}
+}

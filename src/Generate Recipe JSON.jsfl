@@ -19,6 +19,138 @@
     var lib = dom.library;
     var items = lib.getSelectedItems();
 
+	function generateBitmapLookup() {
+		var result = {};
+
+		var libItems = lib.items;
+		var bitmaps = [];
+		var symbols = [];
+	
+		// ------------------------------------------------------------
+		// Collect bitmap and symbol Library items
+		// ------------------------------------------------------------
+		for (var i = 0; i < libItems.length; i++) {
+			var it = libItems[i];
+	
+			if (it.itemType === "bitmap") {
+				bitmaps.push(it);
+			}
+			else if (
+				it.itemType === "movie clip" ||
+				it.itemType === "graphic" ||
+				it.itemType === "button"
+			) {
+				symbols.push(it);
+			}
+		}
+	
+		// ------------------------------------------------------------
+		// Build lookup table
+		// bitmap library name -> true
+		// ------------------------------------------------------------
+		var bitmapLookup = {};
+		for (var b = 0; b < bitmaps.length; b++) {
+			bitmapLookup[bitmaps[b].name] = true;
+		}
+	
+		// ------------------------------------------------------------
+		// bitmapTable
+		// ------------------------------------------------------------
+		// Include every bitmap even if nothing uses it.
+		for (var b = 0; b < bitmaps.length; b++) {
+			result[bitmaps[b].name] = [];
+		}
+	
+		// ------------------------------------------------------------
+		// Scan symbols
+		// ------------------------------------------------------------
+		for (var s = 0; s < symbols.length; s++) {
+			var symbol = symbols[s];
+			var timeline = symbol.timeline;
+	
+			if (!timeline) {
+				continue;
+			}
+	
+			// Keep track so the same symbol isn't added more than once
+			// for the same bitmap.
+			var foundInSymbol = {};
+	
+			var layers = timeline.layers;
+	
+			for (var l = 0; l < layers.length; l++) {
+	
+				var layer = layers[l];
+				var frames = layer.frames;
+	
+				if (!frames) {
+					continue;
+				}
+	
+				/*
+					Animate's layer.frames array can contain repeated
+					references for frame spans.
+	
+					We only need to inspect each keyframe once.
+				*/
+	
+				var lastStartFrame = -1;
+	
+				for (var f = 0; f < frames.length; f++) {
+	
+					var frame = frames[f];
+	
+					if (!frame) {
+						continue;
+					}
+	
+					// Only process the first frame of a frame span.
+					if (frame.startFrame !== f) {
+						continue;
+					}
+	
+					var elements = frame.elements;
+	
+					if (!elements) {
+						continue;
+					}
+	
+					for (var e = 0; e < elements.length; e++) {
+	
+						var element = elements[e];
+	
+						/*
+							Bitmap instances have elementType "instance"
+							and their libraryItem points to the bitmap.
+						*/
+	
+						if (
+							element.elementType === "instance" &&
+							element.libraryItem &&
+							element.libraryItem.itemType === "bitmap"
+						) {
+	
+							var bitmapName = element.libraryItem.name;
+	
+							if (
+								bitmapLookup[bitmapName] &&
+								!foundInSymbol[bitmapName]
+							) {
+								result[bitmapName].push(symbol.name);
+								foundInSymbol[bitmapName] = true;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+	var bitmapTable = generateBitmapLookup();
+
+
     if (!items || items.length === 0) {
         alert("Select one or more bitmap/audio items in the Library panel.");
         return;
@@ -129,19 +261,27 @@
 
 		var fileName = safeFileName(imageID) + "." + ext;
 
-		var itemObj = isBitmap ? {
-            asset_id: imageID,
-			asset_type: "image",
-            replacement_image: fileName
-        } : {
-            asset_id: imageID,
-			asset_type: "audio",
-			replacement_audio: fileName,
-			operation: {
-				mime_type: "audio/mpeg"
-			}
-        };
+		var itemObj;
 
+		if(isBitmap) {
+			itemObj = {
+				asset_id: imageID,
+				asset_type: "image",
+				replacement_image: fileName,
+				parents: bitmapTable[imageID]
+			};
+		}
+		else {
+			itemObj = {
+				asset_id: imageID,
+				asset_type: "audio",
+				replacement_audio: fileName,
+				operation: {
+					mime_type: "audio/mpeg"
+				}
+			};
+		}
+		
         entries.push({itemObj: itemObj, item: item, fileName: fileName});
     }
 
@@ -185,7 +325,8 @@
 		image_processing: {
 			match_original_image_dimensions: true,
 			resize_mode: "contain",
-			skip_resize_if_dimensions_already_match: true
+			skip_resize_if_dimensions_already_match: true,
+			center: true
 		},
 		operation: {
 			preserve_replacement_format: true
@@ -204,8 +345,6 @@
 
 	JSON.prettyPrint = true;
 	var json = JSON.stringify(exportObj);
-	fl.trace(json);
-
 
     var success = FLfile.write(saveURI, json);
 
