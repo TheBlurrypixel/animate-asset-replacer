@@ -17,3 +17,7 @@ winpty gh run watch
 
 // when finished download
 winpty gh run download -D ./release
+
+
+// clear old workflow runs, gets a list of runs and pipes into delete
+gh run list --limit 100 --json databaseId -q '.[].databaseId' | xargs -n1 gh run delete
