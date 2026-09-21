@@ -215,7 +215,6 @@
         var name = String(path);
         name = name.replace(/^.*[\/\\]/, "");
         name = name.replace(/\.[^\.]+$/, "");
-		fl.trace(name);
         return name;
     }
 
