@@ -280,7 +280,7 @@ async function processReplacementJob(payload) {
 				html.slice(asset.replaceEnd);
 
 			if(settings.image_processing.center && !(settings.verification && settings.verification.verify_encoded_image_dimensions_match_original)) {
-				if(processed.processed.width != processed.original.width || processed.processed.height != processed.original.height) {
+				if(parents && Array.isArray(parents) && parents.length > 0 && (processed.processed.width != processed.original.width || processed.processed.height != processed.original.height)) {
 					const offsetWidth = Math.round((processed.processed.width - processed.original.width)/2);
 					const offsetHeight = Math.round((processed.processed.height - processed.original.height)/2);
 	

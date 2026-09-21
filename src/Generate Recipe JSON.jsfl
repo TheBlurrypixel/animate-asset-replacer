@@ -50,7 +50,7 @@
 		// ------------------------------------------------------------
 		var bitmapLookup = {};
 		for (var b = 0; b < bitmaps.length; b++) {
-			bitmapLookup[bitmaps[b].name] = true;
+			bitmapLookup[getBaseName(bitmaps[b].name)] = true;
 		}
 	
 		// ------------------------------------------------------------
@@ -58,7 +58,7 @@
 		// ------------------------------------------------------------
 		// Include every bitmap even if nothing uses it.
 		for (var b = 0; b < bitmaps.length; b++) {
-			result[bitmaps[b].name] = [];
+			result[getBaseName(bitmaps[b].name)] = [];
 		}
 	
 		// ------------------------------------------------------------
@@ -130,13 +130,13 @@
 							element.libraryItem.itemType === "bitmap"
 						) {
 	
-							var bitmapName = element.libraryItem.name;
+							var bitmapName = getBaseName(element.libraryItem.name);
 	
 							if (
 								bitmapLookup[bitmapName] &&
 								!foundInSymbol[bitmapName]
 							) {
-								result[bitmapName].push(symbol.name);
+								result[bitmapName].push(getBaseName(symbol.name));
 								foundInSymbol[bitmapName] = true;
 							}
 						}
@@ -215,6 +215,7 @@
         var name = String(path);
         name = name.replace(/^.*[\/\\]/, "");
         name = name.replace(/\.[^\.]+$/, "");
+		fl.trace(name);
         return name;
     }
 
