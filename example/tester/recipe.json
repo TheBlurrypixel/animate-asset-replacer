@@ -15,7 +15,7 @@
 		{
 			"asset_id":"bg",
 			"asset_type":"image",
-			"replacement_image":"bg.jpg",
+			"replacement_image":"new_bg.jpg",
 			"parents":
 			[
 				
@@ -24,7 +24,7 @@
 		{
 			"asset_id":"bgmusic",
 			"asset_type":"audio",
-			"replacement_audio":"bgmusic.mp3",
+			"replacement_audio":"new_bgmusic.mp3",
 			"operation":
 			{
 				"mime_type":"audio/mpeg"

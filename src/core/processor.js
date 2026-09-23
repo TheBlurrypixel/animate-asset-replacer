@@ -291,15 +291,15 @@ async function processReplacementJob(payload) {
 	
 						// search the definition for the instance that assigns this
 						const {text} = definition;
-						const regex = new RegExp(`^\\s*this\\.(\\w*)\\s?=\\s?new\\slib\\.${assetId}\\(\\)`, "gm");
+						const regex = new RegExp(`\\bthis\\.(\\w*)\\s?=\\s?new\\slib\\.${assetId}\\b`, "gm");
 						const instanceNames = Array.from(text.matchAll(regex)).map(i => i[1]);
 						const insertText = instanceNames.reduce((acc, cur) => {
-							acc += `\tthis.${cur}.regX = ${offsetWidth};\n`
-							acc += `\tthis.${cur}.regY = ${offsetHeight};\n`
+							acc += `this.${cur}.regX = ${offsetWidth};`
+							acc += `this.${cur}.regY = ${offsetHeight};`
 							return acc;
 						}, "");
 	
-						const changedText = text.replace(/^\s*}$/m, `${insertText}$&`);
+						const changedText = text.replace(/\s*}$/, `;${insertText}$&`);
 	
 						html = html.slice(0, definition.start) +
 							changedText +
