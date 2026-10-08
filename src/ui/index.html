@@ -12,7 +12,9 @@
     .field { margin:18px 0; }
     label { display:block; margin-bottom:7px; font-weight:bold; }
     .row { display:flex; gap:8px; }
-    input { flex:1; min-width:0; padding:10px; border-radius:6px; border:1px solid #555; background:#242424; color:#fff; }
+    input, textarea { flex:1; min-width:0; padding:10px; border-radius:6px; border:1px solid #555; background:#242424; color:#fff; font:inherit; }
+    textarea { display:block; width:100%; resize:vertical; }
+    .replacement-card label { margin-top:10px; }
     button { padding:10px 16px; border:0; border-radius:6px; cursor:pointer; }
     #run { margin-top:18px; width:100%; font-size:16px; font-weight:bold; }
     #replacementSection { margin-top:26px; padding-top:18px; border-top:1px solid #444; }
@@ -36,11 +38,11 @@
   <div class="field">
     <label>Recipe JSON</label>
     <div class="row"><input id="recipeFile"><button id="recipeBrowse">Browse</button></div>
-    <div class="hint">Choosing a recipe creates one image selector for every replacement.</div>
+    <div class="hint">Choosing a recipe loads image/audio selectors and editable text replacements.</div>
   </div>
 
   <div id="replacementSection">
-    <strong>ASSET REPLACEMENTS</strong>
+    <strong>REPLACEMENTS</strong>
     <div id="replacementList"><div class="hint">Choose a recipe to load replacements.</div></div>
   </div>
 
