@@ -7,6 +7,7 @@ const { processImage, inspectImage } = require("./imageProcessor");
 const { processAudio } = require("./audioProcessor");
 const { evaluateConditions } = require("./conditionEngine");
 const { adjustBitmapRegistration } = require("./symbolProcessor");
+const { replaceText } = require("./textProcessor");
 
 function resolveReplacementPath(p, recipeFile) {
 	if (!p) return null;
@@ -85,6 +86,12 @@ async function processReplacementJob(payload) {
 	const results = [];
 	for (let i = 0; i < recipe.replacements.length; i++) {
 		const repl = recipe.replacements[i];
+		if (repl.asset_type === "text") {
+			const changed = replaceText(html, repl, i);
+			html = changed.html;
+			results.push({ status: "success", assetType: "text", assetId: `text #${i + 1}`, matchCount: changed.matchCount });
+			continue;
+		}
 		const assetId =
 			repl.asset_id || (recipe.target && recipe.target.asset_id);
 		if (!assetId) throw new Error(`Replacement ${i + 1} has no asset_id.`);
