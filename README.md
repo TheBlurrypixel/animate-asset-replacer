@@ -340,3 +340,24 @@ untouched by resedit.
 ## v0.4.1 — CLI embedded in Electron
 
 `npm run dist:win` now builds the CLI first into `release-cli/windows-x64/`, then builds Electron. electron-builder copies that complete CLI tree to the app root as `cli/` via `extraFiles`. The bundled CLI remains outside `app.asar`, with its Sharp `runtime/` folder beside it. Advanced users can invoke `cli/animate-replacer.exe` directly.
+
+
+## Regex text replacements
+
+Add a text replacement alongside image/audio entries in `replacements`:
+
+```json
+{
+  "asset_type": "text",
+  "replacement_search": "/replac[e]*\\\\s*?me/gm",
+  "replacement_text": "found it"
+}
+```
+
+The regex uses JavaScript `/pattern/flags` syntax. Escape backslashes for JSON
+(e.g. `\\\\s` for whitespace). The replacement uses native
+`String.replace()` semantics, including `$1`, `$&`, and `$$`.
+The `g` flag replaces all matches; without it, only the first match is
+replaced. Text entries require neither `asset_id` nor a replacement file.
+They run in recipe order and operate on the full current HTML text.
+The GUI displays text replacements as read-only recipe entries.
