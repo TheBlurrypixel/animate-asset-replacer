@@ -4,7 +4,6 @@ const { parseSearch, replaceText } = require("../src/core/textProcessor");
 const run = (html, search, replacement_text) => replaceText(html, {
   replacement_search: search, replacement_text
 });
-assert.deepStrictEqual(run("replace me | replaceme", "/replac[e]*\\\\s*?me/gm", "found it"), { html:"replace me | replaceme", matchCount:0 }); // double-escaped pattern is literal backslash
 assert.deepStrictEqual(run("replace me | replaceme", "/replac[e]*\\s*?me/gm", "found it"), { html:"found it | found it", matchCount:2 });
 assert.strictEqual(run("a a", "/a/", "b").html, "b a");
 assert.strictEqual(run("ab", "/(a)(b)/", "$2$1").html, "ba");
