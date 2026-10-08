@@ -77,6 +77,7 @@ async function processReplacementJob(payload) {
 		htmlFile,
 		recipeFile,
 		replacementOverrides = [],
+		textOverrides = [],
 		outputFile,
 	} = payload;
 	if (!htmlFile || !recipeFile)
@@ -87,7 +88,11 @@ async function processReplacementJob(payload) {
 	for (let i = 0; i < recipe.replacements.length; i++) {
 		const repl = recipe.replacements[i];
 		if (repl.asset_type === "text") {
-			const changed = replaceText(html, repl, i);
+			const textOverride = textOverrides[i];
+			const effectiveReplacement = textOverride && typeof textOverride === "object"
+				? { ...repl, ...textOverride }
+				: repl;
+			const changed = replaceText(html, effectiveReplacement, i);
 			html = changed.html;
 			results.push({ status: "success", assetType: "text", assetId: `text #${i + 1}`, matchCount: changed.matchCount });
 			continue;
