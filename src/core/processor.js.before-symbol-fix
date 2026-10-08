@@ -6,7 +6,6 @@ const { parseDataUri, toDataUri } = require("./dataUri");
 const { processImage, inspectImage } = require("./imageProcessor");
 const { processAudio } = require("./audioProcessor");
 const { evaluateConditions } = require("./conditionEngine");
-const { adjustBitmapRegistration } = require("./symbolProcessor");
 
 function resolveReplacementPath(p, recipeFile) {
 	if (!p) return null;
@@ -68,6 +67,119 @@ function determineAssetType(repl, asset, parsed) {
 	throw new Error(
 		`Could not determine asset type for "${repl.asset_id}". Add asset_type.`,
 	);
+}
+
+
+// find lib
+// adds escaping characters
+const esc = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+function closingBrace(t, o) {
+	let d = 0;
+	let m = "code";
+	let q = null;
+
+	for (let i = o; i < t.length; i++) {
+		let c = t[i];
+		let n = t[i + 1];
+
+		if (m === "line") {
+			if (c === "\n" || c === "\r") m = "code";
+			continue;
+		}
+
+		if (m === "block") {
+			if (c === "*" && n === "/") {
+				m = "code";
+				i++;
+			}
+			continue;
+		}
+
+		if (m === "str") {
+			if (c === "\\") {
+				i++;
+				continue;
+			}
+
+			if (c === q) {
+				m = "code";
+				q = null;
+			}
+			
+			continue;
+		}
+
+		if (m === "tpl") {
+			if (c === "\\") {
+				i++;
+				continue;
+			}
+
+			if (c === "`") m = "code";
+			continue;
+		}
+
+		if (c === "/" && n === "/") {
+			m = "line";
+			i++;
+			continue;
+		}
+
+		if (c === "/" && n === "*") {
+			m = "block";
+			i++;
+			continue;
+		}
+
+		if (c === "'" || c === '"') {
+			m = "str";
+			q = c;
+			continue;
+		}
+
+		if (c === "`") {
+			m = "tpl";
+			continue;
+		}
+
+		if (c === "{")
+			d++;
+		else if (c === "}" && --d === 0)
+			return i;
+	}
+	
+	return -1;
+}
+
+// returns an object of the form {end, start, text} with start and end being indices
+// replace like this, given d = findDef()
+// html = html.slice(0, d.start) + changed + out.slice(d.end);
+function findDef(html, id) {
+	let e = esc(id);
+	let patterns = [
+		new RegExp(`(?:\\(lib\\.|\\blib\\.)${e}\\s*=\\s*function\\s*\\(`, "g"),
+		new RegExp(`\\blib\\s*\\[\\s*["']${e}["']\\s*\\]\\s*=\\s*function\\s*\\(`, "g")
+	];
+	let best = null;
+
+	for (let re of patterns) {
+		let m = re.exec(html);
+
+		if (!m) continue;
+
+		let b = html.indexOf("{", m.index + m[0].length);
+		let c = b < 0 ? -1 : closingBrace(html, b);
+
+		if (c < 0) continue;
+
+		let end = c + 1;
+
+		while (/\s/.test(html[end] || "")) end++;
+		if (html[end] === ";") end++;
+		let x = { start: m.index, end, text: html.slice(m.index, end) };
+		if (!best || x.start < best.start) best = x;
+	}
+	return best;
 }
 
 
@@ -167,20 +279,32 @@ async function processReplacementJob(payload) {
 				newUri +
 				html.slice(asset.replaceEnd);
 
-			if (settings.image_processing?.center &&
-				!settings.verification?.verify_encoded_image_dimensions_match_original &&
-				Array.isArray(parents) && parents.length &&
-				(processed.processed.width !== processed.original.width ||
-				 processed.processed.height !== processed.original.height)) {
-				const offsetWidth = Math.round((processed.processed.width - processed.original.width) / 2);
-				const offsetHeight = Math.round((processed.processed.height - processed.original.height) / 2);
-				const adjusted = adjustBitmapRegistration(html, {
-					parents, assetId, offsetWidth, offsetHeight,
-					strict: false
-				});
-				html = adjusted.html;
-				for (const report of adjusted.reports) {
-					if (!report.found) console.warn(`Asset "${assetId}": parent symbol "${report.symbol}" not found; skipping registration adjustment.`);
+			if(settings.image_processing.center && !(settings.verification && settings.verification.verify_encoded_image_dimensions_match_original)) {
+				if(parents && Array.isArray(parents) && parents.length > 0 && (processed.processed.width != processed.original.width || processed.processed.height != processed.original.height)) {
+					const offsetWidth = Math.round((processed.processed.width - processed.original.width)/2);
+					const offsetHeight = Math.round((processed.processed.height - processed.original.height)/2);
+	
+					// offset reg point for each usage of bitmap here
+					// we have the parents so find the definition for each
+					for(parent of parents) {
+						const definition = findDef(html, parent);
+	
+						// search the definition for the instance that assigns this
+						const {text} = definition;
+						const regex = new RegExp(`\\bthis\\.(\\w*)\\s?=\\s?new\\slib\\.${assetId}\\b`, "gm");
+						const instanceNames = Array.from(text.matchAll(regex)).map(i => i[1]);
+						const insertText = instanceNames.reduce((acc, cur) => {
+							acc += `this.${cur}.regX = ${offsetWidth};`
+							acc += `this.${cur}.regY = ${offsetHeight};`
+							return acc;
+						}, "");
+	
+						const changedText = text.replace(/\s*}$/, `;${insertText}$&`);
+	
+						html = html.slice(0, definition.start) +
+							changedText +
+							html.slice(definition.end);
+					}
 				}
 			}
 
