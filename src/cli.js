@@ -286,7 +286,7 @@ async function main() {
             for (const item of result.results) {
 
                 console.log(
-                    `${item.assetId}: ${item.status}`
+                    `${item.assetId}: ${item.status}${item.assetType === "text" ? ` (${item.matchCount} matches)` : ""}`
                 );
 
             }
