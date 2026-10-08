@@ -13,6 +13,11 @@
 	"replacements":
 	[
 		{
+			"asset_type":"text",
+			"replacement_search":"/var\\sTEST\\s=\\s.*;/gm",
+			"replacement_text":"var TEST = true;"
+		},
+		{
 			"asset_id":"bg",
 			"asset_type":"image",
 			"replacement_image":"new_bg.jpg",
