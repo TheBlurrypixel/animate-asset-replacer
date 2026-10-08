@@ -50,10 +50,20 @@ function renderRows(replacements) {
     const card = document.createElement("div"); card.className = "replacement-card";
     const title = document.createElement("div"); title.className = "replacement-title";
     const left = document.createElement("span");
-    left.textContent = `Asset: ${r.asset_id || "(missing asset_id)"}${r.asset_type ? ` (${r.asset_type})` : ""}`;
+    left.textContent = r.asset_type === "text"
+      ? `Text: ${r.replacement_search}`
+      : `Asset: ${r.asset_id || "(missing asset_id)"}${r.asset_type ? ` (${r.asset_type})` : ""}`;
     left.className = "asset-id";
     const right = document.createElement("span"); right.textContent = `#${i+1}`; right.className = "small";
     title.append(left,right);
+
+    if (r.asset_type === "text") {
+      const info = document.createElement("div"); info.className = "hint";
+      info.textContent = `Replace with: ${r.replacement_text}`;
+      card.append(title, info); $("replacementList").append(card);
+      replacementRows.push({ assetId: null, input: null });
+      return;
+    }
 
     const row = document.createElement("div"); row.className = "row";
 
@@ -90,7 +100,7 @@ $("run").addEventListener("click", async () => {
   const response = await window.assetReplacer.processReplacements({
     htmlFile,
     recipeFile,
-    replacementOverrides: replacementRows.map(r => r.input.value.trim())
+    replacementOverrides: replacementRows.map(r => r.input ? r.input.value.trim() : null)
   });
 
   if (!response.ok) { $("log").textContent = response.error; return; }
@@ -112,6 +122,8 @@ $("run").addEventListener("click", async () => {
                  `  Replacement: ${r.replacement.width} x ${r.replacement.height} (${r.replacement.format})`,
                  `  Output: ${r.processed.width} x ${r.processed.height} (${r.mimeType})`,
                  `  Resized: ${r.resized ? "yes" : "no"}`);
+    } else if (r.status === "success" && r.assetType === "text") {
+      lines.push(`  Type: text`, `  Matches replaced: ${r.matchCount}`);
     } else if (r.status === "success" && r.assetType === "audio") {
       lines.push(`  Type: audio`,
                  `  Original MIME: ${r.originalMimeType}`,
