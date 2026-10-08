@@ -58,10 +58,21 @@ function renderRows(replacements) {
     title.append(left,right);
 
     if (r.asset_type === "text") {
-      const info = document.createElement("div"); info.className = "hint";
-      info.textContent = `Replace with: ${r.replacement_text}`;
-      card.append(title, info); $("replacementList").append(card);
-      replacementRows.push({ assetId: null, input: null });
+      left.textContent = "Text replacement";
+      const searchLabel = document.createElement("label");
+      searchLabel.textContent = "Regular Expression";
+      const searchInput = document.createElement("input");
+      searchInput.type = "text";
+      searchInput.value = r.replacement_search || "";
+      searchInput.placeholder = "/pattern/g";
+      const textLabel = document.createElement("label");
+      textLabel.textContent = "Replacement Text";
+      const textInput = document.createElement("textarea");
+      textInput.rows = 3;
+      textInput.value = r.replacement_text ?? "";
+      card.append(title, searchLabel, searchInput, textLabel, textInput);
+      $("replacementList").append(card);
+      replacementRows.push({ assetId: null, input: null, searchInput, textInput });
       return;
     }
 
@@ -100,7 +111,11 @@ $("run").addEventListener("click", async () => {
   const response = await window.assetReplacer.processReplacements({
     htmlFile,
     recipeFile,
-    replacementOverrides: replacementRows.map(r => r.input ? r.input.value.trim() : null)
+    replacementOverrides: replacementRows.map(r => r.input ? r.input.value.trim() : null),
+    textOverrides: replacementRows.map(r => r.searchInput ? {
+      replacement_search: r.searchInput.value,
+      replacement_text: r.textInput.value
+    } : null)
   });
 
   if (!response.ok) { $("log").textContent = response.error; return; }
