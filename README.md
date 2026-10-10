@@ -379,3 +379,21 @@ npm run cli -- input.html recipe.json --skip 2 --skip 4
 When all entries are disabled/skipped, the processor reports a no-op and
 **does not write an output HTML file**. Neither GUI toggles nor CLI skip
 flags modify the recipe JSON.
+
+
+## CLI text replacement overrides
+
+Override either property of a text replacement by its **1-based** position
+in the recipe's `replacements` array:
+
+```bash
+animate-replacer input.html recipe.json --text-search 3="/hello/gi" --text-replace 3="goodbye"
+animate-replacer input.html recipe.json --text-replace 3="new value"
+animate-replacer input.html recipe.json --text-search 3="/old/g"
+```
+
+Both options can be repeated for different entries. The value after the first
+`=` is preserved, including further equal signs; `--text-replace 3=`
+sets an empty replacement string. Override indices must point to text
+entries. The recipe file is never modified. These options can be combined
+with `--skip`; skipped entries are not processed.
