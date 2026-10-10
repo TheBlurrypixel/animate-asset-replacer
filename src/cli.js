@@ -32,6 +32,15 @@ Options:
         --asset bg=new_bg.jpg
         --asset spinSfx=new_spin.mp3
 
+  --text-search <number>=<regex>
+      Override the regex for a text entry (1-based recipe index).
+      Example: --text-search 3="/hello/gi"
+
+  --text-replace <number>=<text>
+      Override the replacement text for a text entry.
+      Example: --text-replace 3="goodbye"
+      Repeat either flag for different entries. Empty text is allowed.
+
   --skip <numbers>
       Skip numbered recipe entries (1-based). Example: --skip 2,4
       Repeatable: --skip 2 --skip 4
@@ -80,6 +89,8 @@ function parseArguments(argv) {
         output: null,
         verbose: false,
         assets: {},
+        textSearch: {},
+        textReplace: {},
         skip: []
     };
 
@@ -105,6 +116,22 @@ function parseArguments(argv) {
 
             result.verbose = true;
 
+        }
+
+        else if (arg === "--text-search" || arg === "--text-replace") {
+            const option = arg;
+            i++;
+            if (i >= args.length) fail(option + " requires number=value.");
+            const value = args[i];
+            const equals = value.indexOf("=");
+            const number = value.slice(0, equals);
+            if (equals < 0 || !/^[1-9]\d*$/.test(number) || !Number.isSafeInteger(Number(number)))
+                fail(option + " requires a positive 1-based entry number followed by =value.");
+            const replacement = value.slice(equals + 1);
+            if (option === "--text-search" && !replacement)
+                fail("--text-search requires a non-empty regular expression.");
+            const target = option === "--text-search" ? result.textSearch : result.textReplace;
+            target[number] = replacement;
         }
 
         else if (arg === "--skip") {
@@ -231,6 +258,24 @@ async function main() {
     if (args.skip.some(n => !Number.isSafeInteger(n) || n > replacements.length))
         fail(`--skip entry numbers must be between 1 and ${replacements.length}.`);
 
+    const textOverrides = replacements.map((replacement, i) => {
+        const number = String(i + 1);
+        const override = {};
+        if (Object.prototype.hasOwnProperty.call(args.textSearch, number))
+            override.replacement_search = args.textSearch[number];
+        if (Object.prototype.hasOwnProperty.call(args.textReplace, number))
+            override.replacement_text = args.textReplace[number];
+        return Object.keys(override).length ? override : null;
+    });
+
+    for (const number of new Set([...Object.keys(args.textSearch), ...Object.keys(args.textReplace)])) {
+        const index = Number(number) - 1;
+        if (index >= replacements.length)
+            fail(`Text override entry ${number} is outside the recipe (1-${replacements.length}).`);
+        if (replacements[index].asset_type !== "text")
+            fail(`Text override entry ${number} is not a text replacement.`);
+    }
+
     const replacementOverrides = replacements.map(
         replacement => {
 
@@ -269,6 +314,7 @@ async function main() {
             htmlFile,
             recipeFile,
             replacementOverrides,
+            textOverrides,
             disabledIndices: [...new Set(args.skip.map(n => n - 1))],
             outputFile: requestedOutput
         });
