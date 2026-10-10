@@ -1,0 +1,9 @@
+Recommended Command Style with Overrides
+
+
+MSYS_NO_PATHCONV=1 npm run cli -- \
+  ./example/index.html \
+  ./example/tester/recipeTestText.json \
+  --text-search '1=/2026\sMichael\sGochoco/gm' \
+  --text-replace '1=block block' \
+  --verbose
