@@ -57,6 +57,15 @@ function renderRows(replacements) {
     const right = document.createElement("span"); right.textContent = `#${i+1}`; right.className = "small";
     title.append(left,right);
 
+    const enabledLabel = document.createElement("label");
+    enabledLabel.className = "enabled-toggle";
+    const enabledInput = document.createElement("input");
+    enabledInput.type = "checkbox";
+    enabledInput.checked = true;
+    enabledLabel.append(enabledInput, document.createTextNode("Enabled"));
+    card.append(enabledLabel);
+    enabledInput.addEventListener("change", () => card.classList.toggle("replacement-disabled", !enabledInput.checked));
+
     if (r.asset_type === "text") {
       left.textContent = "Text replacement";
       const searchLabel = document.createElement("label");
@@ -72,7 +81,7 @@ function renderRows(replacements) {
       textInput.value = r.replacement_text ?? "";
       card.append(title, searchLabel, searchInput, textLabel, textInput);
       $("replacementList").append(card);
-      replacementRows.push({ assetId: null, input: null, searchInput, textInput });
+      replacementRows.push({ assetId: null, input: null, searchInput, textInput, enabledInput });
       return;
     }
 
@@ -97,7 +106,7 @@ function renderRows(replacements) {
     });
 
     row.append(input,browse); card.append(title,row); $("replacementList").append(card);
-    replacementRows.push({ assetId:r.asset_id, input });
+    replacementRows.push({ assetId:r.asset_id, input, enabledInput });
   });
 }
 
@@ -112,6 +121,7 @@ $("run").addEventListener("click", async () => {
     htmlFile,
     recipeFile,
     replacementOverrides: replacementRows.map(r => r.input ? r.input.value.trim() : null),
+    disabledIndices: replacementRows.flatMap((r, i) => r.enabledInput.checked ? [] : [i]),
     textOverrides: replacementRows.map(r => r.searchInput ? {
       replacement_search: r.searchInput.value,
       replacement_text: r.textInput.value
@@ -122,8 +132,8 @@ $("run").addEventListener("click", async () => {
 
   const job = response.result;
   const lines = [
-    "Complete",
-    `Output: ${job.outputPath}`,
+    job.status === "no-op" ? "No processing performed: all replacements disabled." : "Complete",
+    `Output: ${job.outputPath || "(none)"}`,
     `Requested: ${job.replacementsRequested}`,
     `Succeeded: ${job.replacementsSucceeded}`,
     `Skipped: ${job.replacementsSkipped}`,

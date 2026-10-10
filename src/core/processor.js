@@ -78,15 +78,24 @@ async function processReplacementJob(payload) {
 		recipeFile,
 		replacementOverrides = [],
 		textOverrides = [],
+		disabledIndices = [],
 		outputFile,
 	} = payload;
 	if (!htmlFile || !recipeFile)
 		throw new Error("HTML file and Recipe JSON are required.");
 	const recipe = normalizeRecipe(loadRecipe(recipeFile));
-	let html = fs.readFileSync(htmlFile, "utf8");
+	if (!Array.isArray(disabledIndices) || disabledIndices.some(i => !Number.isInteger(i) || i < 0 || i >= recipe.replacements.length))
+		throw new Error("disabledIndices must contain valid zero-based replacement indices.");
+	const disabled = new Set(disabledIndices);
+	let html = null;
+	if (disabled.size < recipe.replacements.length) html = fs.readFileSync(htmlFile, "utf8");
 	const results = [];
 	for (let i = 0; i < recipe.replacements.length; i++) {
 		const repl = recipe.replacements[i];
+		if (disabled.has(i)) {
+			results.push({ status: "skipped", assetId: repl.asset_id || `text #${i + 1}`, assetType: repl.asset_type || "asset", reason: "Disabled by user." });
+			continue;
+		}
 		if (repl.asset_type === "text") {
 			const textOverride = textOverrides[i];
 			const effectiveReplacement = textOverride && typeof textOverride === "object"
@@ -265,6 +274,10 @@ async function processReplacementJob(payload) {
 		throw new Error(`Unsupported asset type "${assetType}".`);
 	}
 
+	if (disabled.size === recipe.replacements.length) {
+		return { status: "no-op", outputPath: null, replacementsRequested: recipe.replacements.length,
+			replacementsSucceeded: 0, replacementsSkipped: results.length, results };
+	}
 	const suffix = recipe.output?.filename_suffix || "_processed";
 	const pp = path.parse(htmlFile);
 	const outputPath = outputFile
