@@ -109,7 +109,7 @@ function parseArguments(argv) {
 
         else if (arg === "--skip") {
             i++;
-            if (i >= args.length || !/^[1-9]\\d*(,[1-9]\\d*)*$/.test(args[i]))
+            if (i >= args.length || !/^[1-9]\d*(,[1-9]\d*)*$/.test(args[i]))
                 fail("--skip requires positive entry numbers, e.g. --skip 2,4.");
             result.skip.push(...args[i].split(",").map(Number));
         }
