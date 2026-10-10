@@ -361,3 +361,21 @@ The `g` flag replaces all matches; without it, only the first match is
 replaced. Text entries require neither `asset_id` nor a replacement file.
 They run in recipe order and operate on the full current HTML text.
 The GUI displays text replacements as read-only recipe entries.
+
+
+## Disable individual replacements (GUI and CLI)
+
+In the Electron GUI, uncheck **Enabled** on any replacement card to skip
+that entry for the current run. Every entry is enabled by default.
+Disabled entries remain visible and appear as skipped in the results.
+
+In the CLI, use 1-based recipe entry numbers:
+
+```bash
+npm run cli -- input.html recipe.json --skip 2,4
+npm run cli -- input.html recipe.json --skip 2 --skip 4
+```
+
+When all entries are disabled/skipped, the processor reports a no-op and
+**does not write an output HTML file**. Neither GUI toggles nor CLI skip
+flags modify the recipe JSON.
