@@ -32,6 +32,10 @@ Options:
         --asset bg=new_bg.jpg
         --asset spinSfx=new_spin.mp3
 
+  --skip <numbers>
+      Skip numbered recipe entries (1-based). Example: --skip 2,4
+      Repeatable: --skip 2 --skip 4
+
   --output <file>
       Override the output HTML filename.
 
@@ -75,7 +79,8 @@ function parseArguments(argv) {
         recipe: null,
         output: null,
         verbose: false,
-        assets: {}
+        assets: {},
+        skip: []
     };
 
 
@@ -100,6 +105,13 @@ function parseArguments(argv) {
 
             result.verbose = true;
 
+        }
+
+        else if (arg === "--skip") {
+            i++;
+            if (i >= args.length || !/^[1-9]\\d*(,[1-9]\\d*)*$/.test(args[i]))
+                fail("--skip requires positive entry numbers, e.g. --skip 2,4.");
+            result.skip.push(...args[i].split(",").map(Number));
         }
 
         else if (arg === "--output") {
@@ -216,6 +228,8 @@ async function main() {
 
 
     const replacements = recipe.replacements;
+    if (args.skip.some(n => !Number.isSafeInteger(n) || n > replacements.length))
+        fail(`--skip entry numbers must be between 1 and ${replacements.length}.`);
 
     const replacementOverrides = replacements.map(
         replacement => {
@@ -255,6 +269,7 @@ async function main() {
             htmlFile,
             recipeFile,
             replacementOverrides,
+            disabledIndices: [...new Set(args.skip.map(n => n - 1))],
             outputFile: requestedOutput
         });
 
@@ -262,13 +277,11 @@ async function main() {
         const outputFile = result.outputPath;
 
 
-        if (!outputFile) {
-
-            throw new Error(
-                "Processor did not return an output filename."
-            );
-
+        if (result.status === "no-op") {
+            console.log("No processing performed: all replacement entries were skipped.");
+            return;
         }
+        if (!outputFile) throw new Error("Processor did not return an output filename.");
 
 
         console.log("");
